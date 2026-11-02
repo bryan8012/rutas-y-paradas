@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EstadoAbordaje {
+  ABORDADO
+  AUSENTE
+}
+
+model User {
+  id                    Int                     @id @default(autoincrement())
+  name                  String
+  email                 String                  @unique
+  password              String
+  role                  String                  @default("CONDUCTOR")
+  tbASIGNACIONESs       tb_ASIGNACIONES[]
+  tbASISTENCIA_ABORDAJE tb_ASISTENCIA_ABORDAJE[]
+  tbIncidencias         tb_INCIDENCIAS[]
+}
+
+model tb_VEHICULOS {
+  id              Int               @id @default(autoincrement())
+  placa           String            @unique
+  modelo          String
+  capacidad       Float
+  rutas           tb_RUTAS[]
+  tbASIGNACIONESs tb_ASIGNACIONES[]
+}
+
+model tb_RUTAS {
+  id                    Int                     @id @default(autoincrement())
+  nombre                String
+  latitud               Float                   @default(0.0)
+  longitud              Float                   @default(0.0)
+  vehiculoId            Int
+  vehiculo              tb_VEHICULOS            @relation(fields: [vehiculoId], references: [id])
+  paradas               tb_RUTA_PARADAS[]
+  tbASIGNACIONESs       tb_ASIGNACIONES[]
+  tbASISTENCIA_ABORDAJE tb_ASISTENCIA_ABORDAJE[]
+  passengers            tb_PASAJEROS[]
+}
+
+model tb_PARADAS {
+  id                    Int                     @id @default(autoincrement())
+  nombre                String
+  direccion             String
+  rutas                 tb_RUTA_PARADAS[]
+  tbASISTENCIA_ABORDAJE tb_ASISTENCIA_ABORDAJE[]
+  passengers            tb_PASAJEROS[]
+}
+
+model tb_RUTA_PARADAS {
+  id       Int        @id @default(autoincrement())
+  rutaId   Int
+  paradaId Int
+  orden    Int
+  ruta     tb_RUTAS   @relation(fields: [rutaId], references: [id])
+  parada   tb_PARADAS @relation(fields: [paradaId], references: [id])
+
+  @@unique([rutaId, paradaId])
+}
+
+model tb_ASIGNACIONES {
+  id                     Int                      @id @default(autoincrement())
+  fecha                  DateTime                 @default(now())
+  rutaId                 Int
+  vehiculoId             Int
+  conductorId            Int
+  ruta                   tb_RUTAS                 @relation(fields: [rutaId], references: [id])
+  vehiculo               tb_VEHICULOS             @relation(fields: [vehiculoId], references: [id])
+  conductor              User                     @relation(fields: [conductorId], references: [id])
+  tb_ASISTENCIA_ABORDAJE tb_ASISTENCIA_ABORDAJE[]
+  tbIncidencias          tb_INCIDENCIAS[]
+
+  @@unique([rutaId, vehiculoId, conductorId, fecha])
+}
+
+model tb_ASISTENCIA_ABORDAJE {
+  id           Int             @id @default(autoincrement())
+  fecha        DateTime        @default(now())
+  latitud      Float
+  longitud     Float
+  rutaId       Int
+  paradaId     Int
+  conductorId  Int
+  asignacionId Int
+  ruta         tb_RUTAS        @relation(fields: [rutaId], references: [id])
+  parada       tb_PARADAS      @relation(fields: [paradaId], references: [id])
+  conductor    User            @relation(fields: [conductorId], references: [id])
+  asignacion   tb_ASIGNACIONES @relation(fields: [asignacionId], references: [id])
+}
+
+model tb_PASAJEROS {
+  id            Int         @id @default(autoincrement())
+  nombre        String
+  email         String      @unique
+  estado        String?     @default("PENDIENTE")
+  rutaId        Int
+  ruta          tb_RUTAS    @relation(fields: [rutaId], references: [id])
+  paradaId      Int?
+  parada        tb_PARADAS? @relation(fields: [paradaId], references: [id])
+  fechaRegistro DateTime    @default(now())
+}
+
+model tb_EVENTOS_ABORDAJE {
+  id             Int            @id @default(autoincrement())
+  clientEventId  String         @unique
+  pasajeroId     Int
+  pasajeroNombre String
+  estado         EstadoAbordaje
+  latitud        Float?
+  longitud       Float?
+  registradoEn   DateTime
+  synchronizedEn DateTime       @default(now())
+}
+
+model tb_INCIDENCIAS {
+  id                    Int              @id @default(autoincrement())
+  categoria             String
+  descripcion           String
+  estado                String           @default("Pendiente")
+  observacionResolucion String?
+  viajeId               Int?
+  conductorId           Int?
+  fecha                 DateTime         @default(now())
+  viaje                 tb_ASIGNACIONES? @relation(fields: [viajeId], references: [id])
+  conductor             User?            @relation(fields: [conductorId], references: [id])
+}

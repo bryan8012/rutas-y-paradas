@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* Es vital definir dónde buscar tus componentes */
+@source "../app/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../components/**/*.{js,ts,jsx,tsx,mdx}";
+
+@layer base {
+  body {
+    @apply bg-[#0B1212] text-white;
+  }
+}

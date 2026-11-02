@@ -1,0 +1,9 @@
+import { defineConfig } from 'prisma';
+import { neon } from '@prisma/adapter-neon'; // O el adaptador que uses para Postgres
+import { Pool } from '@neondatabase/serverless';
+
+export default defineConfig({
+  datasource: {
+    adapter: new neon(new Pool({ connectionString: process.env.DATABASE_URL })),
+  },
+});

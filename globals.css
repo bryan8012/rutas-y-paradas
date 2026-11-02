@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  html {
+    background-color: #f4f7f6;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: #f4f7f6;
+    color: #0f172a;
+    transition:
+      background-color 300ms ease,
+      color 300ms ease;
+  }
+
+  html.dark {
+    background-color: #02070a;
+  }
+
+  html.dark body {
+    background-color: #02070a;
+    color: #f8fafc;
+  }
+}
